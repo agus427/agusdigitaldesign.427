@@ -110,6 +110,35 @@
         z-index: 9999;
         pointer-events: none;
       }
+
+      /* ===== Fotos en las tarjetas de servicio ===== */
+      .card-photo {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 8 / 5;
+        object-fit: cover;
+        border-radius: 14px;
+        margin-bottom: 20px;
+      }
+
+      /* ===== Sección de contacto alineada a la izquierda ===== */
+      #contacto.cta-left .cta-inner,
+      #contacto.cta-left .cta-inner > * {
+        text-align: left;
+      }
+      #contacto.cta-left .cta-inner {
+        align-items: flex-start;
+        justify-items: start;
+      }
+      #contacto.cta-left .cta-inner > * {
+        margin-left: 0;
+        margin-right: auto;
+      }
+      #contacto.cta-left .cta-lead {
+        margin-top: 16px;
+        margin-bottom: 24px;
+      }
     </style>
   </head>
   <body>
@@ -235,6 +264,14 @@
           </div>
           <div class="cards">
             <article class="card">
+              <img
+                class="card-photo"
+                src="img/branding.jpg"
+                alt="Ilustración de una identidad visual: logo, paleta de colores, tipografía y manual de marca"
+                width="1200"
+                height="750"
+                loading="lazy"
+              />
               <h3>Branding</h3>
               <ul>
                 <li>Identidad visual completa (logo, tipografías, paleta de colores)</li>
@@ -243,6 +280,14 @@
               </ul>
             </article>
             <article class="card">
+              <img
+                class="card-photo"
+                src="img/sitio-web.jpg"
+                alt="Ilustración de un sitio web a medida, visto en computadora y en celular"
+                width="1200"
+                height="750"
+                loading="lazy"
+              />
               <h3>Diseño web</h3>
               <ul>
                 <li>Web institucional a medida (no plantillas)</li>
@@ -582,12 +627,13 @@
         </div>
       </section>
 
-      <section id="contacto" class="section cta">
+      <section id="contacto" class="section cta cta-left">
         <div class="container narrow cta-inner">
           <h2>
             Si sentís que es momento de profesionalizar tu imagen, conversemos y
             definimos cómo empezamos.
           </h2>
+          <p class="lead cta-lead">Escribime y hacemos una reunión sin costo.</p>
           <a
             class="btn"
             href="https://docs.google.com/forms/d/e/1FAIpQLSeeFf23AtNKV_DDtO09o1Ekuo8hYLQTwZHyB6IXtDh5xuX8ow/viewform"
