@@ -20,6 +20,97 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- ANIMACIONES: se activan solo si la persona no pidió "reducir movimiento" -->
+    <script>
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("anim");
+      }
+    </script>
+    <style>
+      /* ===== ANIMACIONES (podés cambiar el color y la velocidad acá) ===== */
+      :root {
+        --anim-accent: #f49825; /* color de la barra de progreso (naranja de tu logo) */
+        --anim-ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+      }
+
+      @keyframes anim-fade-up {
+        from { opacity: 0; translate: 0 28px; }
+        to   { opacity: 1; translate: 0 0; }
+      }
+      @keyframes anim-word-up {
+        from { opacity: 0; translate: 0 0.6em; filter: blur(6px); }
+        to   { opacity: 1; translate: 0 0; filter: blur(0); }
+      }
+      @keyframes anim-scale-in {
+        from { opacity: 0; scale: 0.92; translate: 0 20px; }
+        to   { opacity: 1; scale: 1; translate: 0 0; }
+      }
+
+      html.anim { scroll-behavior: smooth; }
+
+      /* --- Hero: el título entra palabra por palabra --- */
+      .anim .hero h1 { opacity: 0; }
+      .anim .hero h1.is-split { opacity: 1; }
+      .anim .hero h1 .w {
+        display: inline-block;
+        animation: anim-word-up 0.8s var(--anim-ease) backwards;
+        animation-delay: calc(var(--i) * 55ms + 150ms);
+      }
+      .anim .hero .eyebrow { animation: anim-fade-up 0.7s var(--anim-ease) backwards; }
+      .anim .hero .lead    { animation: anim-fade-up 0.8s var(--anim-ease) 1s backwards; }
+      .anim .hero .btn     { animation: anim-fade-up 0.8s var(--anim-ease) 1.2s backwards; }
+
+      /* --- Aparición al hacer scroll --- */
+      .anim .reveal { opacity: 0; }
+      .anim .reveal.is-visible {
+        opacity: 1;
+        animation: anim-fade-up 0.8s var(--anim-ease) var(--d, 0s) backwards;
+      }
+      .anim .reveal.reveal-scale.is-visible { animation-name: anim-scale-in; }
+
+      /* --- Tarjetas y diferenciales: se levantan al pasar el mouse --- */
+      .anim .card,
+      .anim .feature {
+        transition: translate 0.35s var(--anim-ease), box-shadow 0.35s ease,
+          transform 0.35s ease, border-color 0.35s ease,
+          background-color 0.35s ease;
+      }
+      .anim .card:hover,
+      .anim .feature:hover {
+        translate: 0 -6px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
+      }
+      .anim .feature .icon { transition: scale 0.35s var(--anim-ease), rotate 0.35s var(--anim-ease); }
+      .anim .feature:hover .icon { scale: 1.12; rotate: -4deg; }
+
+      /* --- Botones --- */
+      .anim .btn {
+        transition: translate 0.25s var(--anim-ease), box-shadow 0.25s ease,
+          background-color 0.25s ease, color 0.25s ease,
+          border-color 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+      }
+      .anim .btn:hover { translate: 0 -3px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18); }
+      .anim .btn:active { translate: 0 0; }
+
+      /* --- Header: sombra suave cuando se scrollea --- */
+      .anim .site-header { transition: box-shadow 0.3s ease, background-color 0.3s ease; }
+      .anim .site-header.is-scrolled { box-shadow: 0 6px 28px rgba(0, 0, 0, 0.08); }
+
+      /* --- Barra de progreso de lectura --- */
+      .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--anim-accent);
+        transform-origin: 0 50%;
+        transform: scaleX(0);
+        z-index: 9999;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -526,5 +617,104 @@
     </footer>
 
     <script src="js/main.js"></script>
+
+    <!-- ANIMACIONES -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        if (!root.classList.contains("anim")) return;
+        try {
+          // 1) Título del hero: cada palabra entra con un pequeño retraso
+          var h1 = document.querySelector(".hero h1");
+          if (h1) {
+            var words = h1.textContent.trim().split(/\s+/);
+            h1.textContent = "";
+            words.forEach(function (w, i) {
+              var s = document.createElement("span");
+              s.className = "w";
+              s.style.setProperty("--i", i);
+              s.textContent = w;
+              h1.appendChild(s);
+              if (i < words.length - 1) h1.appendChild(document.createTextNode(" "));
+            });
+            h1.classList.add("is-split");
+          }
+
+          // 2) Elementos que aparecen al scrollear (con retraso escalonado)
+          var selectors = [
+            ".section-intro > *",
+            ".about-photo",
+            ".about-text > *",
+            ".cards > .card",
+            ".feature-grid > .feature",
+            ".timeline > li",
+            ".excludes .container > p",
+            ".excludes .container > h2",
+            ".exclude-list > li",
+            ".faq-item",
+            ".problem-bridge",
+            ".cta-inner > *",
+          ];
+          var seen = [];
+          var counters = new Map();
+          var items = [];
+          selectors.forEach(function (sel) {
+            document.querySelectorAll(sel).forEach(function (el) {
+              if (seen.indexOf(el) !== -1) return;
+              seen.push(el);
+              var key = el.parentElement;
+              var idx = counters.get(key) || 0;
+              counters.set(key, idx + 1);
+              el.style.setProperty("--d", Math.min(idx, 6) * 0.09 + "s");
+              items.push(el);
+            });
+          });
+          var photo = document.querySelector(".about-photo");
+          if (photo) photo.classList.add("reveal-scale");
+
+          if ("IntersectionObserver" in window) {
+            var io = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (e) {
+                  if (e.isIntersecting) {
+                    e.target.classList.add("is-visible");
+                    io.unobserve(e.target);
+                  }
+                });
+              },
+              { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+            );
+            items.forEach(function (el) {
+              el.classList.add("reveal");
+              io.observe(el);
+            });
+          }
+
+          // 3) Header con sombra + barra de progreso al scrollear
+          var header = document.querySelector(".site-header");
+          var bar = document.createElement("div");
+          bar.className = "scroll-progress";
+          bar.setAttribute("aria-hidden", "true");
+          document.body.appendChild(bar);
+          var ticking = false;
+          function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+              var y = window.scrollY || root.scrollTop;
+              var max = root.scrollHeight - window.innerHeight;
+              bar.style.transform = "scaleX(" + (max > 0 ? Math.min(y / max, 1) : 0) + ")";
+              if (header) header.classList.toggle("is-scrolled", y > 8);
+              ticking = false;
+            });
+          }
+          window.addEventListener("scroll", onScroll, { passive: true });
+          onScroll();
+        } catch (err) {
+          // Si algo falla, se apagan las animaciones y la página queda normal
+          root.classList.remove("anim");
+        }
+      })();
+    </script>
   </body>
 </html>
